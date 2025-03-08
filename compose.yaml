@@ -1,0 +1,15 @@
+
+services:
+  summarize_paper:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: cloud-function-emulator
+    ports:
+      - "8080:8080"
+    env_file:
+      - code/.env
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=credential/ds-products-palm2-f00d06143ed8.json
+    init: true
+    tty: true

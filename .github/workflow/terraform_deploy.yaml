@@ -1,0 +1,59 @@
+name: Deploy to Cloud Run Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # .env ファイルから環境変数を読み込む
+      - name: Load environment variables from .env
+        run: |
+          echo "Loading environment variables from code/.env"
+          # .env のコメント行を除外して読み込み
+          export $(grep -v '^#' code/.env | xargs)
+          echo "GCP_PROJECT_ID=${GCP_PROJECT_ID}" >> $GITHUB_ENV
+          echo "GCP_REGION=${GCP_REGION}" >> $GITHUB_ENV
+          echo "CLOUD_RUN_SERVICE=${CLOUD_RUN_SERVICE}" >> $GITHUB_ENV
+          echo "GCP_SERVICE_ACCOUNT=${GCP_SERVICE_ACCOUNT}" >> $GITHUB_ENV
+        shell: bash
+
+      # Cloud SDK のセットアップと認証
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      # Docker イメージのビルド
+      - name: Build Docker image
+        run: |
+          docker build -t gcr.io/${{ env.GCP_PROJECT_ID }}/cloud-run-function:latest -f docker/Dockerfile .
+
+      # Docker イメージを Container Registry（GCR）へプッシュ
+      - name: Push Docker image
+        run: |
+          docker push gcr.io/${{ env.GCP_PROJECT_ID }}/cloud-run-function:latest
+
+      # Cloud Run にデプロイ
+      - name: Deploy to Cloud Functions
+        run: |
+          gcloud run deploy ${{ env.CLOUD_RUN_SERVICE }} \
+            --execution-environment=gen2 \
+            --memory=1G \
+            --cpu=1 \
+            --timeout=600s \
+            --base-image=python311 \
+            --region=${{ env.REGION }} \
+            --function=main \
+            --service-account=transcription@${{ env.PROJECT_ID }}.iam.gserviceaccount.com \
+            --project=${{ env.GCP_PROJECT_ID }}

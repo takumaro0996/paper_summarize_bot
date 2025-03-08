@@ -1,0 +1,5 @@
+arxiv
+httpx
+slack_sdk
+google-generativeai
+functions_framework
