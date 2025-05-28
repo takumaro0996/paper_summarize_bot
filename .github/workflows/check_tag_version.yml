@@ -25,4 +25,4 @@ jobs:
           fi
 
       - name: リリースのタグ名を表示
-        run: echo "Release version: $VERSION"
+        run: echo "Release version:$VERSION"
