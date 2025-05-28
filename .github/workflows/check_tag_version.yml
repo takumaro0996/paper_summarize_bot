@@ -4,7 +4,8 @@ on:
   release:
     types:
       - published    # リリースが公開されたときにトリガー
-
+  workflow_dispatch:
+  
 jobs:
   show-version:
     runs-on: ubuntu-latest
