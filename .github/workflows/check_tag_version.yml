@@ -2,13 +2,27 @@ name: Get Release Version
 
 on:
   release:
-    types:
-      - published    # リリースが公開されたときにトリガー
+    types: [published]
   workflow_dispatch:
-  
+    inputs:
+      tag_name:
+        description: 'リリース対象のタグ名 (例: v1.2.3)'
+        required: true
+
 jobs:
   show-version:
     runs-on: ubuntu-latest
     steps:
+      - name: Determine version
+        id: determine
+        run: |
+          # release イベントなら github.event.release.tag_name
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "VERSION=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          else
+            # workflow_dispatch の入力から取得
+            echo "VERSION=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+          fi
+
       - name: リリースのタグ名を表示
-        run: echo "Release version:${{ github.event.release.tag_name }}"
+        run: echo "Release version: $VERSION"
