@@ -2,11 +2,12 @@ name: Get Release Version
 
 on:
   release:
-    types: [published]    # リリースが公開されたときにトリガー
+    types:
+      - published    # リリースが公開されたときにトリガー
 
 jobs:
   show-version:
     runs-on: ubuntu-latest
     steps:
       - name: リリースのタグ名を表示
-        run: echo "Release version: ${{ github.event.release.tag_name }}"
+        run: echo "Release version:${{ github.event.release.tag_name }}"
